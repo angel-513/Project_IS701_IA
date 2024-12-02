@@ -25,10 +25,19 @@ def cargar_datos(csv_file):
 
     return dataset
 
+def guardar_pesos_txt(model, epoch):
+    with open("pesos_por_epoca.txt", "a") as file:
+        file.write(f"Pesos de la epoca: {epoch+1}:\n")
+        for name, param in model.state_dict().items():
+            file.write(f"{name}: \n{param.numpy()}\n")
+        file.write("\n")
+
 def entrenar_rna(model, train_loader, epochs, lr):
     optimizer = optim.Adam(model.parameters(), lr=lr) #Inicializa el optimizador Adam con los parametros del modelo. Ajusta los pesos del modelo para reducir la funcion de perdida
     criterion = nn.CrossEntropyLoss() #Funcion de perdida para clasificacion multiclase. Calcula la diferencia entre las predicciones y las etiquedas reales, o sea, la perdida.
     model.train() #Pone al modelo en modo de entrenamiento. Metodo heredado
+
+    open("pesos_por_epoca.txt", "w").close()
 
     for epoch in range(epochs): #Itera por el numero de epocas
         epoch_loss = 0
@@ -51,11 +60,8 @@ def entrenar_rna(model, train_loader, epochs, lr):
 
         accuracy = 100 * correct_predictions / total_predictions
         print(f"Epoca {epoch+1}  Perdida: {epoch_loss:.4f}, Precision: {accuracy:.2f}%") #Imprime la perdida total de la epoca
-        print(f"     Pesos epoca {epoch+1}: {model.state_dict()}")
 
-        '''if(epoch + 1) % 10 == 0:
-            torch.save(model.state_dict(), f"modelo_entrenado_epoca_{epoch+1}.pth")
-            print(f"Modelo guardado en modelo_entrenado_epoca_{epoch+1}.pth")'''
+        guardar_pesos_txt(model, epoch)
 
     torch.save(model.state_dict(), "modelo_entrenado_final.pth") #Guarda los pesos del modelo entrenado en un archivo
     print("Modelo guardado en modelo_entrenado_final.pth")
